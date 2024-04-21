@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -13,30 +13,27 @@ export class UserService{
     ) {}
 
     async create(createUserDto: CreateUserDto) {
-        const existsUser = await this.userRepository.findOne({
-            where: {
-                email: createUserDto.email
-            }
-        })
-        if (existsUser) throw new BadRequestException('This email has already been registered!')
-
-        const existsUsername = await this.userRepository.findOne({
-            where: {
-                username: createUserDto.username
-            }
-        })
-        if (existsUsername) throw new BadRequestException('This username is taken!')
-            
         const user = await this.userRepository.save({
             email: createUserDto.email,
             username: createUserDto.username,
             password_hash: await argon2.hash(createUserDto.password),
         })
-        return { user };
+    return {user}
     }
 
-    update(updateUserDto: UpdateUserDto) {
-        return 'User is updated';
+    async update(id: number, updateUserDto: UpdateUserDto) {
+        const notExistsUser = await this.userRepository.findOne({
+            where: {id}
+        })
+        if (!notExistsUser) throw new NotFoundException('User not found.')
+
+        return await this.userRepository.update(
+            id,
+            {
+                email: updateUserDto.email,
+                username: updateUserDto.username,           
+            }
+        )
     }
 
     async findOne(email: string) {
