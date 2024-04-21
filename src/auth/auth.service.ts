@@ -30,10 +30,8 @@ export class AuthService {
       }
     })
     if (existsUsername) throw new BadRequestException('This username is taken!')
-    
-    await this.userService.create(userDto);
 
-    return "Success!"
+    return await this.userService.create(userDto);
   }  
 
   async validateUser(email: string, pass: string): Promise<any> {

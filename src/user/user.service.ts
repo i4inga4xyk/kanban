@@ -18,6 +18,7 @@ export class UserService{
             username: createUserDto.username,
             password_hash: await argon2.hash(createUserDto.password),
         })
+    return {user}
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
