@@ -47,6 +47,10 @@ export class UserService{
         })
     }
 
+    async findAll() {
+        return await this.userRepository.find();
+    }
+
     async remove(id: number) {
         return await this.userRepository.delete({
             id: id

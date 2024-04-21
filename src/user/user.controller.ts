@@ -7,19 +7,19 @@ import { User } from "./entities/user.entity";
 export class UserController{
     constructor(private readonly userService: UserService) {}
 
-    @Post()
+    @Post('register')
     @UsePipes(new ValidationPipe())
     create(@Body() createUserDto: CreateUserDto) {
         return this.userService.create(createUserDto);
     }
 
     @Get()
-    findAll(email: string) {
-        return this.userService.findOne(email)
+    findAll() {
+        return this.userService.findAll()
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+    remove(@Param('id') id: number) {
+    return this.userService.remove(id);
   }
 }
