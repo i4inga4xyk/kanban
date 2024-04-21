@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -20,8 +20,20 @@ export class UserService{
         })
     }
 
-    update(updateUserDto: UpdateUserDto) {
-        return 'User is updated';
+    async update(id: number, updateUserDto: UpdateUserDto) {
+        const notExistsUser = await this.userRepository.findOne({
+            where: {id}
+        })
+        if (!notExistsUser) throw new NotFoundException('User not found.')
+
+        return await this.userRepository.update(
+            id,
+            {
+                email: updateUserDto.email,
+                username: updateUserDto.username,
+                password_hash: await argon2.hash(updateUserDto.password)             
+            }
+        )
     }
 
     async findOne(email: string) {
