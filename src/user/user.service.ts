@@ -30,8 +30,7 @@ export class UserService{
             id,
             {
                 email: updateUserDto.email,
-                username: updateUserDto.username,
-                password_hash: await argon2.hash(updateUserDto.password)             
+                username: updateUserDto.username,           
             }
         )
     }
