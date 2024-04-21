@@ -18,7 +18,7 @@ export class UserService{
             username: createUserDto.username,
             password_hash: await argon2.hash(createUserDto.password),
         })
-    return {user}
+    return user;
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
@@ -26,12 +26,17 @@ export class UserService{
             where: {id}
         })
         if (!notExistsUser) throw new NotFoundException('User not found.')
-
+        
+        let hash: string | undefined;
+        if (updateUserDto.password) {
+            hash = await argon2.hash(updateUserDto.password);
+        }
         return await this.userRepository.update(
             id,
             {
                 email: updateUserDto.email,
-                username: updateUserDto.username,           
+                username: updateUserDto.username,
+                password_hash: hash,           
             }
         )
     }
