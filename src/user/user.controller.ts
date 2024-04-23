@@ -17,6 +17,7 @@ export class UserController{
 
     @ApiTags('UserModule')
     @Patch(':id')
+    @UsePipes(new ValidationPipe())
     update(
         @Param('id') id: number,
         @Body() updateUserDto: UpdateUserDto
