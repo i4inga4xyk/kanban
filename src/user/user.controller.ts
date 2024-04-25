@@ -5,17 +5,16 @@ import { User } from "./entities/user.entity";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags('UserModule')
 @Controller('user')
 export class UserController{
     constructor(private readonly userService: UserService) {}
 
-    @ApiTags('UserModule')
     @Get()
     findAll() {
         return this.userService.findAll()
     }
 
-    @ApiTags('UserModule')
     @Patch(':id')
     @UsePipes(new ValidationPipe())
     update(
@@ -25,7 +24,6 @@ export class UserController{
         return this.userService.update(id, updateUserDto)
     }
 
-    @ApiTags('UserModule')
     @Delete(':id')
     remove(@Param('id') id: number) {
     return this.userService.remove(id);

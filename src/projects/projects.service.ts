@@ -4,55 +4,45 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
 import { Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
-    @InjectRepository(User) private readonly userRepository: Repository<User>
+    private readonly userService: UserService,
   ){}
 
   async create(createProjectDto: CreateProjectDto, userId: number) {
     const project = {
       title: createProjectDto.title,
       description: createProjectDto.description,
-      owner: await this.userRepository.findOne({where: {id: userId}}),
-      users: await this.userRepository.findBy({id: userId})
+      owner: await this.userService.findOneById(userId),
+      users: [await this.userService.findOneById(userId)]
     };  
     return this.projectRepository.save(project);
   }
 
   async findAll(userId: number) {
     return await this.projectRepository.find({
-      where: {users: await this.userRepository.findBy({id: userId})},
-     relations: {users: true}
+      where: {users: await this.userService.findOneById(userId)},
+      relations: {users: true}
     });
   }
 
   async findOne(projectId: number, userId: number) {
-    await this.isExist(projectId);
-
-    const isSignedIn = await this.projectRepository.find({
-      relations: {users: true},
-      where: {
-        id: projectId,
-        users: await this.userRepository.findOne({where: {id: userId}})
-      }
-    });
-    if (!isSignedIn.length) throw new UnauthorizedException('You don\'t have access to this page!');
-
-    return await this.projectRepository.find({
-      where: {id : projectId}
-    });
+    const project = await this.isExist(projectId);
+    if (!project.users.find(users => users.id === userId)) {
+      throw new UnauthorizedException('You don\'t have access to this page!');
+    }
+    return project;
   }
-
+  
   async update(projectId: number, updateProjectDto: UpdateProjectDto, ownerId: number) {
     const project = await this.isExist(projectId);
-    await this.isOwner(projectId, ownerId);
-    console.log(project);
+    await this.isOwner(project, ownerId);
     if (updateProjectDto.userId) {
-      const user = await this.userRepository.findOne({where: {id: updateProjectDto.userId}});
+      const user = await this.userService.findOneById(updateProjectDto.userId);
       project.users.push(user)
     }
     project.title = updateProjectDto.title ?? project.title;
@@ -61,8 +51,8 @@ export class ProjectsService {
   }
 
   async remove(projectId: number, ownerId: number) {
-    await this.isExist(projectId);
-    await this.isOwner(projectId, ownerId);
+    const project = await this.isExist(projectId);
+    await this.isOwner(project, ownerId);
     return await this.projectRepository.delete(projectId);
   }
 
@@ -72,13 +62,9 @@ export class ProjectsService {
       return project;
   }
 
-  async isOwner(projectId:number, userId: number): Promise<void> {
-    const isSignedIn = await this.projectRepository.find({
-      where: {
-        id: projectId,
-        owner: await this.userRepository.findOne({where: {id: userId}})
-      }
-    });
-    if (!isSignedIn.length) throw new UnauthorizedException('You don\'t have access to this page!');
+  async isOwner(project: Project, userId: number): Promise<void> {
+    if (project.owner.id != userId) {
+      throw new UnauthorizedException('You don\'t have access to this page!');
+    }
   }
 }
