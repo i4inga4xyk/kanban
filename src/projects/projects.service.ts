@@ -14,11 +14,12 @@ export class ProjectsService {
   ){}
 
   async create(createProjectDto: CreateProjectDto, userId: number) {
+    const user = await this.userService.findOneById(userId);
     const project = {
       title: createProjectDto.title,
       description: createProjectDto.description,
-      owner: await this.userService.findOneById(userId),
-      users: [await this.userService.findOneById(userId)]
+      owner: user,
+      users: [user]
     };  
     return this.projectRepository.save(project);
   }
@@ -56,13 +57,13 @@ export class ProjectsService {
     return await this.projectRepository.delete(projectId);
   }
 
-  async isExist(id: number): Promise<Project> {
+  private async isExist(id: number): Promise<Project> {
       const project = await this.projectRepository.findOne({where: {id}});
       if (!project) throw new NotFoundException('Project not found!');
       return project;
   }
 
-  async isOwner(project: Project, userId: number): Promise<void> {
+  private async isOwner(project: Project, userId: number): Promise<void> {
     if (project.owner.id != userId) {
       throw new UnauthorizedException('You don\'t have access to this page!');
     }

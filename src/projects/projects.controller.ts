@@ -5,7 +5,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@ApiTags('ProjectModule1')
+@ApiTags('ProjectModule')
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
