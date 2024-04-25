@@ -1,9 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Project } from "src/projects/entities/project.entity";
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
+
+    @ManyToMany(() => Project, (project) => project.users, {onDelete: "SET NULL", nullable: true})
+    projects: Project[]
 
     @Column()
     email: string;

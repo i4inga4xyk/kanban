@@ -9,8 +9,6 @@ async function bootstrap() {
     .setTitle('Kanban Project')
     .setDescription('What to do, what to do...')
     .setVersion('1.0')
-    .addTag('UserModule')
-    .addTag('AuthModule')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

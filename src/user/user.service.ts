@@ -41,12 +41,28 @@ export class UserService{
         )
     }
 
-    async findOne(email: string) {
-        return await this.userRepository.findOne({
-            where: {
-                email: email
-            } 
-        })
+    async findOneByEmail(email: string) {
+        const user = await this.userRepository.findOne({ where: { email } })
+        if (!user) {
+            throw new NotFoundException('User not found!')
+        }
+        return user;
+    }
+
+    async findOneByUsername(username: string) {
+        const user = await this.userRepository.findOne({ where: { username } })
+        if (!user) {
+            throw new NotFoundException('User not found!')
+        }
+        return user;
+    }
+
+    async findOneById(id: number) {
+        const user = await this.userRepository.findOne({ where: { id } })
+        if (!user) {
+            throw new NotFoundException('User not found!')
+        }
+        return user;
     }
 
     async findAll() {

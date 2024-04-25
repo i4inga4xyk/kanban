@@ -4,38 +4,27 @@ import * as argon2 from 'argon2'
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/types/types';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    @InjectRepository(User) private readonly userRepository: Repository<User>
     ) {}
   
   async register(userDto: CreateUserDto) {
-    const existsUser = await this.userRepository.findOne({
-      where: {
-        email: userDto.email
-      }
-    })
-    if (existsUser) throw new BadRequestException('This email has already been registered!')
 
-    const existsUsername = await this.userRepository.findOne({
-      where: {
-        username: userDto.username
-      }
-    })
-    if (existsUsername) throw new BadRequestException('This username is taken!')
+    const existsEmail = await this.userService.findOneByEmail(userDto.email);
+    if (existsEmail) throw new BadRequestException('This email has already been registered!');
+
+    const existsUsername = await this.userService.findOneByUsername(userDto.username);
+    if (existsUsername) throw new BadRequestException('This username is taken!');
 
     return await this.userService.create(userDto);
   }  
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.userService.findOne(email);
+    const user = await this.userService.findOneByEmail(email);
     if (!user) {
       throw new UnauthorizedException('This email is not registered!');
     }
