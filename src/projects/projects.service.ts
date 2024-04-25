@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,48 +13,72 @@ export class ProjectsService {
     @InjectRepository(User) private readonly userRepository: Repository<User>
   ){}
 
-  async create(createProjectDto: CreateProjectDto, id: number) {
-    await this.titleExist(createProjectDto.title);    
+  async create(createProjectDto: CreateProjectDto, userId: number) {
     const project = {
       title: createProjectDto.title,
       description: createProjectDto.description,
-      users: await this.userRepository.findBy({id}),
+      owner: await this.userRepository.findOne({where: {id: userId}}),
+      users: await this.userRepository.findBy({id: userId})
     };  
     return this.projectRepository.save(project);
   }
 
-  async findAll(id: number) {
+  async findAll(userId: number) {
     return await this.projectRepository.find({
-      where: {users: await this.userRepository.findBy({id})},
-      relations: {users: true}
+      where: {users: await this.userRepository.findBy({id: userId})},
+     relations: {users: true}
     });
   }
 
-  async findOne(id: number) {
-    const project = await this.isExist(id);
-    return project;
+  async findOne(projectId: number, userId: number) {
+    await this.isExist(projectId);
+
+    const isSignedIn = await this.projectRepository.find({
+      relations: {users: true},
+      where: {
+        id: projectId,
+        users: await this.userRepository.findOne({where: {id: userId}})
+      }
+    });
+    if (!isSignedIn.length) throw new UnauthorizedException('You don\'t have access to this page!');
+
+    return await this.projectRepository.find({
+      where: {id : projectId}
+    });
   }
 
-  async update(id: number, updateProjectDto: UpdateProjectDto) {
-    await this.isExist(id);
-    //await this.titleExist(updateProjectDto.title)
-    return await this.projectRepository.update(id, updateProjectDto);
+  async update(projectId: number, updateProjectDto: UpdateProjectDto, ownerId: number) {
+    const project = await this.isExist(projectId);
+    await this.isOwner(projectId, ownerId);
+    console.log(project);
+    if (updateProjectDto.userId) {
+      const user = await this.userRepository.findOne({where: {id: updateProjectDto.userId}});
+      project.users.push(user)
+    }
+    project.title = updateProjectDto.title ?? project.title;
+    project.description = updateProjectDto.description ?? project.description;
+    return await this.projectRepository.save(project);
   }
 
-  async remove(id: number) {
-    await this.isExist(id);
-    return await this.projectRepository.delete(id);
+  async remove(projectId: number, ownerId: number) {
+    await this.isExist(projectId);
+    await this.isOwner(projectId, ownerId);
+    return await this.projectRepository.delete(projectId);
   }
 
-  async addUser() {}
-
-  async isExist(id: number): Promise<void> {
+  async isExist(id: number): Promise<Project> {
       const project = await this.projectRepository.findOne({where: {id}});
-      if (!project) throw new NotFoundException('Project not found!')
+      if (!project) throw new NotFoundException('Project not found!');
+      return project;
   }
 
-  async titleExist(title: string): Promise<void> {
-    const titleExist = await this.projectRepository.findBy({title});
-    if (titleExist.length > 1) throw new BadRequestException('Project with this name already exists!');
+  async isOwner(projectId:number, userId: number): Promise<void> {
+    const isSignedIn = await this.projectRepository.find({
+      where: {
+        id: projectId,
+        owner: await this.userRepository.findOne({where: {id: userId}})
+      }
+    });
+    if (!isSignedIn.length) throw new UnauthorizedException('You don\'t have access to this page!');
   }
 }

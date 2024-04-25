@@ -1,12 +1,12 @@
 import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Project {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToMany(() => User, (user) => user.projects, {onDelete: 'CASCADE'})
+    @ManyToMany(() => User, (user) => user.projects, {nullable: true, eager: true})
     @JoinTable()
     users: User[]
 
@@ -15,6 +15,9 @@ export class Project {
 
     @Column()
     description: string;
+
+    @ManyToOne(() => User, {eager: true})
+    owner: User
 
     @CreateDateColumn()
     createdAt: Date;

@@ -6,7 +6,7 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToMany(() => Project, (project) => project.users, {onDelete: 'SET NULL'})
+    @ManyToMany(() => Project, (project) => project.users, {onDelete: "SET NULL", nullable: true})
     projects: Project[]
 
     @Column()
