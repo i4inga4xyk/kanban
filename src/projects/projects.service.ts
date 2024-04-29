@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
+import { fieldName } from 'src/types/types';
 
 @Injectable()
 export class ProjectsService {
@@ -14,7 +15,7 @@ export class ProjectsService {
   ){}
 
   async create(createProjectDto: CreateProjectDto, userId: number) {
-    const user = await this.userService.findOne(userId);
+    const user = await this.userService.findOne(fieldName.id, userId);
     const project = {
       title: createProjectDto.title,
       description: createProjectDto.description,
@@ -26,7 +27,7 @@ export class ProjectsService {
 
   async findAll(userId: number) {
     return await this.projectRepository.find({
-      where: {users: await this.userService.findOne(userId)},
+      where: {users: await this.userService.findOne(fieldName.id, userId)},
       relations: {users: true}
     });
   }
@@ -43,7 +44,7 @@ export class ProjectsService {
     const project = await this.isExist(projectId);
     await this.isOwner(project, ownerId);
     if (updateProjectDto.userId) {
-      const user = await this.userService.findOne(updateProjectDto.userId);
+      const user = await this.userService.findOne(fieldName.id, updateProjectDto.userId);
       project.users.push(user)
     }
     project.title = updateProjectDto.title ?? project.title;

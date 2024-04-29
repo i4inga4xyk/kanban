@@ -3,3 +3,9 @@ export interface IUser {
     username: string
     email: string
 }
+
+export enum fieldName {
+    id = 'id',
+    email = 'email',
+    username = 'username'
+}

@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import * as argon2 from 'argon2'
 import { JwtService } from '@nestjs/jwt';
-import { IUser } from 'src/types/types';
+import { IUser, fieldName } from 'src/types/types';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class AuthService {
   }  
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.userService.findOne(email);
+    const user = await this.userService.findOne(fieldName.email, email);
     if (!user) {
       throw new UnauthorizedException('This email is not registered!');
     }

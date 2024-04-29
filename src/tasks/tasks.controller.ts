@@ -4,6 +4,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { IPaginatedResponse } from 'src/types/paginated-response.dto';
+import { Task } from './entities/task.entity';
 
 @ApiTags('TaskModule')
 @Controller('tasks')
@@ -23,7 +25,7 @@ export class TasksController {
     @Query('projectId') projectId: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 5,
-    @Req() req) {
+    @Req() req): Promise<IPaginatedResponse<Task>> {
     return this.tasksService.findAll(+projectId, page, limit, +req.user.id);
   }
 

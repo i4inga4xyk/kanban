@@ -6,6 +6,8 @@ import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { ProjectsService } from 'src/projects/projects.service';
+import { IPaginatedResponse } from 'src/types/paginated-response.dto';
+import { fieldName } from 'src/types/types';
 
 @Injectable()
 export class TasksService {
@@ -28,13 +30,12 @@ export class TasksService {
     return this.taskRepository.save(task);
   }
 
-  async findAll(projectId: number, page: number, limit: number, userId: number) {
+  async findAll(projectId: number, page: number, limit: number, userId: number): Promise<IPaginatedResponse<Task>> {
     const userInProject = await this.projectService.findOne(projectId, userId);
     
     page < 1 ? page = 1 : page;
     limit < 0 ? limit = 0 : limit;
-
-    return await this.taskRepository.find({
+    const [tasks, total] =  await this.taskRepository.findAndCount({
       where: {
       project: {id: userInProject.id},
       },
@@ -44,20 +45,26 @@ export class TasksService {
       take: limit,
       skip: (page - 1) * limit      
     });
+    return {
+      data: tasks,
+      total: total,
+      page: page,
+      limit: limit
+    }
   }
 
   async findOne(id: number, userId: number) {
     const task = await this.isExist(id);
-    await this.projectService.findOne(task.project.id, userId);
+    await this.accessCheck(task, userId);
     return task;
   }
 
   async update(taskId: number, updateTaskDto: UpdateTaskDto, userId: number) {
     const task = await this.isExist(taskId);
-    const project = await this.projectService.findOne(task.project.id, userId);
+    await this.accessCheck(task, userId);
     if (updateTaskDto.userId) {
-      const user = await this.userService.findOne(updateTaskDto.userId);
-      if (!project.users.find(users => users.id === user.id)) {
+      const user = await this.userService.findOne(fieldName.id, updateTaskDto.userId);
+      if (!task.project.users.find(users => users.id === user.id)) {
         throw new UnauthorizedException('User doesn\'t have access to this project!');
       }
       task.users.push(user);
@@ -69,7 +76,7 @@ export class TasksService {
 
   async remove(taskId: number, userId: number) {
     const task = await this.isExist(taskId)
-    await this.projectService.findOne(task.project.id, userId);
+    await this.accessCheck(task, userId);
     return await this.taskRepository.delete(taskId);
   }
 
@@ -77,5 +84,11 @@ export class TasksService {
     const task = await this.taskRepository.findOne({where: {id}, relations: {project: true}});
     if (!task) throw new NotFoundException('Task not found!');
     return task;
+  }
+
+  private async accessCheck(task: Task, userId: number) {
+    if (!task.project.users.find(users => users.id === userId)) {
+      throw new ForbiddenException('Access forbidden.');
+    }
   }
 }
