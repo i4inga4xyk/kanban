@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import * as argon2 from 'argon2'
 import { JwtService } from '@nestjs/jwt';
@@ -13,18 +13,11 @@ export class AuthService {
     ) {}
   
   async register(userDto: CreateUserDto) {
-
-    const existsEmail = await this.userService.findOneByEmail(userDto.email);
-    if (existsEmail) throw new BadRequestException('This email has already been registered!');
-
-    const existsUsername = await this.userService.findOneByUsername(userDto.username);
-    if (existsUsername) throw new BadRequestException('This username is taken!');
-
     return await this.userService.create(userDto);
   }  
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.userService.findOneByEmail(email);
+    const user = await this.userService.findOne(email);
     if (!user) {
       throw new UnauthorizedException('This email is not registered!');
     }

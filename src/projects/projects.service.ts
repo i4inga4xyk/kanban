@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ export class ProjectsService {
   ){}
 
   async create(createProjectDto: CreateProjectDto, userId: number) {
-    const user = await this.userService.findOneById(userId);
+    const user = await this.userService.findOne(userId);
     const project = {
       title: createProjectDto.title,
       description: createProjectDto.description,
@@ -26,7 +26,7 @@ export class ProjectsService {
 
   async findAll(userId: number) {
     return await this.projectRepository.find({
-      where: {users: await this.userService.findOneById(userId)},
+      where: {users: await this.userService.findOne(userId)},
       relations: {users: true}
     });
   }
@@ -43,7 +43,7 @@ export class ProjectsService {
     const project = await this.isExist(projectId);
     await this.isOwner(project, ownerId);
     if (updateProjectDto.userId) {
-      const user = await this.userService.findOneById(updateProjectDto.userId);
+      const user = await this.userService.findOne(updateProjectDto.userId);
       project.users.push(user)
     }
     project.title = updateProjectDto.title ?? project.title;
