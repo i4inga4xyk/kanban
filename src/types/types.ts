@@ -4,7 +4,7 @@ export interface IUser {
     email: string
 }
 
-export enum fieldName {
+export enum UserSearchFields {
     id = 'id',
     email = 'email',
     username = 'username'
