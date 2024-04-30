@@ -1,19 +1,16 @@
-import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
-import { UserService } from 'src/user/user.service';
 import { ProjectsService } from 'src/projects/projects.service';
 import { IPaginatedResponse } from 'src/types/paginated-response.dto';
-import { fieldName } from 'src/types/types';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task) private readonly taskRepository: Repository<Task>,
-    private readonly userService: UserService,
     private readonly projectService: ProjectsService
   ) {}
 
@@ -31,13 +28,13 @@ export class TasksService {
   }
 
   async findAll(projectId: number, page: number, limit: number, userId: number): Promise<IPaginatedResponse<Task>> {
-    const userInProject = await this.projectService.findOne(projectId, userId);
+    await this.projectService.findOne(projectId, userId);
     
     page < 1 ? page = 1 : page;
     limit < 0 ? limit = 0 : limit;
     const [tasks, total] =  await this.taskRepository.findAndCount({
       where: {
-      project: {id: userInProject.id},
+      project: {id: projectId},
       },
       order: {
         updatedAt: 'DESC'
@@ -63,9 +60,12 @@ export class TasksService {
     const task = await this.isExist(taskId);
     await this.accessCheck(task, userId);
     if (updateTaskDto.userId) {
-      const user = await this.userService.findOne(fieldName.id, updateTaskDto.userId);
-      if (!task.project.users.find(users => users.id === user.id)) {
+      const user = task.project.users.find(users => users.id === updateTaskDto.userId);
+      if (!user) {
         throw new UnauthorizedException('User doesn\'t have access to this project!');
+      }
+      if(task.users.find(users => users.id === user.id)) {
+        throw new BadRequestException('User has been already added to this task!')
       }
       task.users.push(user);
     }

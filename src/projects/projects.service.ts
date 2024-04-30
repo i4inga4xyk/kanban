@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
-import { fieldName } from 'src/types/types';
+import { UserSearchFields } from 'src/types/types';
 
 @Injectable()
 export class ProjectsService {
@@ -15,7 +15,7 @@ export class ProjectsService {
   ){}
 
   async create(createProjectDto: CreateProjectDto, userId: number) {
-    const user = await this.userService.findOne(fieldName.id, userId);
+    const user = await this.userService.findOne(UserSearchFields.id, userId);
     const project = {
       title: createProjectDto.title,
       description: createProjectDto.description,
@@ -27,7 +27,7 @@ export class ProjectsService {
 
   async findAll(userId: number) {
     return await this.projectRepository.find({
-      where: {users: await this.userService.findOne(fieldName.id, userId)},
+      where: {users: await this.userService.findOne(UserSearchFields.id, userId)},
       relations: {users: true}
     });
   }
@@ -44,7 +44,10 @@ export class ProjectsService {
     const project = await this.isExist(projectId);
     await this.isOwner(project, ownerId);
     if (updateProjectDto.userId) {
-      const user = await this.userService.findOne(fieldName.id, updateProjectDto.userId);
+      const user = await this.userService.findOne(UserSearchFields.id, updateProjectDto.userId);
+      if (project.users.find(users => users.id === user.id)) {
+        throw new BadRequestException('User has been already added to this task!')
+      }
       project.users.push(user)
     }
     project.title = updateProjectDto.title ?? project.title;

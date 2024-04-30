@@ -5,7 +5,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import * as argon2 from "argon2";
-import { fieldName } from "src/types/types";
+import { UserSearchFields } from "src/types/types";
 
 @Injectable()
 export class UserService{
@@ -49,22 +49,8 @@ export class UserService{
         )
     }
 
-    async findOne(field: fieldName, value: string | number) {
+    async findOne(field: UserSearchFields, value: string | number) {
         const userExists = await this.userRepository.findOne({where: {[field]: value}})
-        // let userExists: User;
-        // if (typeof(user) === 'string') {
-        //     userExists = await this.userRepository.findOne({
-        //     where: [
-        //         {email: user},
-        //         {username: user}
-        //     ]
-        // });
-        // }
-        // else if (typeof(user) === 'number') {
-        //     userExists = await this.userRepository.findOne({
-        //         where: {id: user}
-        //     });
-        // }
         if (!userExists) {
             throw new NotFoundException('User not found!');
         }
