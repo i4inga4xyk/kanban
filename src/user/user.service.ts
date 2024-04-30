@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import * as argon2 from "argon2";
+import { UserSearchFields } from "src/types/types";
 
 @Injectable()
 export class UserService{
@@ -13,12 +14,19 @@ export class UserService{
     ) {}
 
     async create(createUserDto: CreateUserDto) {
-        const user = await this.userRepository.save({
+        const isExist = await this.userRepository.findOne({
+            where: [
+                {email: createUserDto.email},
+                {username: createUserDto.username}
+            ]
+        })
+        if (isExist) throw new BadRequestException('This email and/or username is already taken!')
+
+        return this.userRepository.save({
             email: createUserDto.email,
             username: createUserDto.username,
-            password_hash: await argon2.hash(createUserDto.password),
-        })
-    return user;
+            password_hash: await argon2.hash(createUserDto.password)
+        });
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
@@ -41,28 +49,12 @@ export class UserService{
         )
     }
 
-    async findOneByEmail(email: string) {
-        const user = await this.userRepository.findOne({ where: { email } })
-        if (!user) {
-            throw new NotFoundException('User not found!')
+    async findOne(field: UserSearchFields, value: string | number) {
+        const userExists = await this.userRepository.findOne({where: {[field]: value}})
+        if (!userExists) {
+            throw new NotFoundException('User not found!');
         }
-        return user;
-    }
-
-    async findOneByUsername(username: string) {
-        const user = await this.userRepository.findOne({ where: { username } })
-        if (!user) {
-            throw new NotFoundException('User not found!')
-        }
-        return user;
-    }
-
-    async findOneById(id: number) {
-        const user = await this.userRepository.findOne({ where: { id } })
-        if (!user) {
-            throw new NotFoundException('User not found!')
-        }
-        return user;
+        return userExists;
     }
 
     async findAll() {
