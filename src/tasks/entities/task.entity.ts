@@ -1,6 +1,7 @@
 import { Project } from "src/projects/entities/project.entity";
+import { Status } from "src/status/entities/status.entity";
 import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Task {
@@ -12,6 +13,10 @@ export class Task {
 
     @Column()
     description: string;
+
+    @ManyToOne(() => Status)
+    @JoinColumn()
+    status: Status;
 
     @CreateDateColumn()
     createdAt: Date;
