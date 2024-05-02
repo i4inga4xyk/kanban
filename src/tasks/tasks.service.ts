@@ -6,12 +6,14 @@ import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { ProjectsService } from 'src/projects/projects.service';
 import { IPaginatedResponse } from 'src/types/paginated-response.dto';
+import { StatusService } from 'src/status/status.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task) private readonly taskRepository: Repository<Task>,
-    private readonly projectService: ProjectsService
+    private readonly projectService: ProjectsService,
+    private readonly statusService: StatusService
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: number) {
@@ -19,10 +21,11 @@ export class TasksService {
       title: createTaskDto.title,
       description: createTaskDto.description,
       project: {id: +createTaskDto.project},
+      status: {id: +createTaskDto.status}
     }
     
-    const project = await this.projectService.findOne(+createTaskDto.project, userId);
-    if (!project) throw new ForbiddenException('Access forbidden.');
+    await this.statusService.findOne(+createTaskDto.status, userId);
+    await this.projectService.findOne(+createTaskDto.project, userId);
 
     return this.taskRepository.save(task);
   }
@@ -68,6 +71,10 @@ export class TasksService {
         throw new BadRequestException('User has been already added to this task!')
       }
       task.users.push(user);
+    }
+    if (updateTaskDto.status) {
+      const status = await this.statusService.findOne(+updateTaskDto.status, userId);
+      task.status = status;
     }
     task.title = updateTaskDto.title ?? task.title;
     task.description = updateTaskDto.description ?? task.title;

@@ -1,26 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsString, MaxLength } from "class-validator";
 import { Project } from "src/projects/entities/project.entity";
-import { Status } from "src/status/entities/status.entity";
 
-export class CreateTaskDto {
+export class CreateStatusDto {
     @ApiProperty()
     @IsString()
-    @IsNotEmpty()
     @MaxLength(20)
+    @IsNotEmpty()
     title: string;
-
-    @ApiProperty()
-    @IsString()
-    description: string;
 
     @ApiProperty()
     @IsNotEmpty()
     @IsNumber()
     project: Project;
-
-    @ApiProperty()
-    @IsNotEmpty()
-    @IsNumber()
-    status: Status;
 }
