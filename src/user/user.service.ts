@@ -39,7 +39,7 @@ export class UserService{
         if (updateUserDto.password) {
             hash = await argon2.hash(updateUserDto.password);
         }
-        return await this.userRepository.update(
+        await this.userRepository.update(
             id,
             {
                 email: updateUserDto.email,
@@ -47,6 +47,7 @@ export class UserService{
                 password_hash: hash,           
             }
         )
+        return "User successfully updated!"
     }
 
     async findOne(field: UserSearchFields, value: string | number) {
@@ -62,8 +63,7 @@ export class UserService{
     }
 
     async remove(id: number) {
-        return await this.userRepository.delete({
-            id: id
-        })
+        await this.userRepository.delete({id: id})
+        return "User successfully deleted!"
     }
 }

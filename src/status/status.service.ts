@@ -55,7 +55,9 @@ export class StatusService {
     if (status.project.owner.id != userId) {
       throw new ForbiddenException('Access forbidden.');
     }
-
-    return await this.statusRepository.delete({id});
+    
+    await this.statusRepository.delete({id});
+    
+    return "Status successfully deleted!";
   }
 }

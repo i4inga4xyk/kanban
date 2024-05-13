@@ -14,7 +14,7 @@ export class ProjectsService {
     private readonly userService: UserService,
   ){}
 
-  async create(createProjectDto: CreateProjectDto, userId: number) {
+  async create(createProjectDto: CreateProjectDto, userId: number): Promise<Project> {
     const user = await this.userService.findOne(UserSearchFields.id, userId);
     const project = {
       title: createProjectDto.title,
@@ -58,7 +58,8 @@ export class ProjectsService {
   async remove(projectId: number, ownerId: number) {
     const project = await this.isExist(projectId);
     await this.isOwner(project, ownerId);
-    return await this.projectRepository.delete(projectId);
+    await this.projectRepository.delete(projectId);
+    return "Project successfully deleted!";
   }
 
   private async isExist(id: number): Promise<Project> {

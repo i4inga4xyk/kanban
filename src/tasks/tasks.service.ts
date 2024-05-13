@@ -84,7 +84,8 @@ export class TasksService {
   async remove(taskId: number, userId: number) {
     const task = await this.isExist(taskId)
     await this.accessCheck(task, userId);
-    return await this.taskRepository.delete(taskId);
+    await this.taskRepository.delete(taskId);
+    return "Task successfully deleted!";
   }
 
   private async isExist(id: number): Promise<Task> {

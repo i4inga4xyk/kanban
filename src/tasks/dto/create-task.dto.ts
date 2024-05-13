@@ -4,22 +4,22 @@ import { Project } from "src/projects/entities/project.entity";
 import { Status } from "src/status/entities/status.entity";
 
 export class CreateTaskDto {
-    @ApiProperty()
+    @ApiProperty({example: "Test task"})
     @IsString()
     @IsNotEmpty()
     @MaxLength(20)
     title: string;
 
-    @ApiProperty()
+    @ApiProperty({example: "Description of the task"})
     @IsString()
     description: string;
 
-    @ApiProperty()
+    @ApiProperty({example: 1, description: "Project id"})
     @IsNotEmpty()
     @IsNumber()
     project: Project;
 
-    @ApiProperty()
+    @ApiProperty({example: 1, description: "Status id"})
     @IsNotEmpty()
     @IsNumber()
     status: Status;

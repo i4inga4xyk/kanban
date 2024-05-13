@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, Validation
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { IPaginatedResponse } from 'src/types/paginated-response.dto';
 import { Task } from './entities/task.entity';
@@ -12,6 +12,8 @@ import { Task } from './entities/task.entity';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @ApiOperation({description: "Adds a new task to the project."})
+  @ApiCreatedResponse({description: "Task successfully added!", type: Task})
   @UsePipes(new ValidationPipe())
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -19,6 +21,11 @@ export class TasksController {
     return this.tasksService.create(createTaskDto, +req.user.id);
   }
 
+  @ApiOperation({description: "Returns all tasks from the project for current user."})
+  @ApiQuery({name: "projectId", description: "Project Id", required: true, type: "string"})
+  @ApiQuery({name: "page", description: "Number of displayed pages", required: false, type: "number"})
+  @ApiQuery({name: "limit", description: "Number of items per page", required: false, type: "number"})
+  @ApiOkResponse({description: "All projects", type: [Task]})
   @Get()
   @UseGuards(JwtAuthGuard)
   findAll(
@@ -29,18 +36,27 @@ export class TasksController {
     return this.tasksService.findAll(+projectId, page, limit, +req.user.id);
   }
 
+  @ApiOperation({description: "Returns a task by id, if user is eligible to see it"})
+  @ApiParam({name: "id", description: "Task ID"})
+  @ApiOkResponse({description: "Task info", type: Task})
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string, @Req() req) {
     return this.tasksService.findOne(+id, +req.user.id);
   }
 
+  @ApiOperation({description: "Updates task data."})
+  @ApiParam({name: "id", description: "Task ID"})
+  @ApiOkResponse({description: "Updated task info", type: Task})
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() req) {
     return this.tasksService.update(+id, updateTaskDto, +req.user.id);
   }
 
+  @ApiOperation({description: "Deletes a task by id."})
+  @ApiParam({name: "id", description: "Task ID"})
+  @ApiOkResponse({description: "Task successfully deleted!"})
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req) {
