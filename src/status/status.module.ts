@@ -9,6 +9,6 @@ import { ProjectsModule } from 'src/projects/projects.module';
   imports: [TypeOrmModule.forFeature([Status]), ProjectsModule],
   controllers: [StatusController],
   providers: [StatusService],
-  exports: [StatusService]
+  exports: [StatusService],
 })
 export class StatusModule {}

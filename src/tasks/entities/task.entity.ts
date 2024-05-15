@@ -1,33 +1,52 @@
-import { Project } from "src/projects/entities/project.entity";
-import { Status } from "src/status/entities/status.entity";
-import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { Project } from 'src/projects/entities/project.entity';
+import { Status } from 'src/status/entities/status.entity';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Task {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @ApiProperty({ example: 1 })
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    title: string;
+  @ApiProperty({ example: 'Test task' })
+  @Column()
+  title: string;
 
-    @Column()
-    description: string;
+  @ApiProperty({ example: 'Description of the task' })
+  @Column()
+  description: string;
 
-    @ManyToOne(() => Status)
-    @JoinColumn()
-    status: Status;
+  @ApiProperty({ type: () => Status })
+  @ManyToOne(() => Status)
+  @JoinColumn()
+  status: Status;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @ApiProperty({ example: new Date().toISOString() })
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @ApiProperty({ example: new Date().toISOString() })
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @ManyToOne(() => Project)
-    project: Project;
+  @ApiProperty({ type: () => Project })
+  @ManyToOne(() => Project)
+  project: Project;
 
-    @ManyToMany(() => User, (user) => user.tasks, {nullable: true, eager: true})
-    @JoinTable()
-    users: User[];
+  @ApiProperty({ type: () => User })
+  @ManyToMany(() => User, (user) => user.tasks, { nullable: true, eager: true })
+  @JoinTable()
+  users: User[];
 }

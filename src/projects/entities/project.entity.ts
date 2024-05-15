@@ -1,29 +1,47 @@
-import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Project {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @ApiProperty({ example: 1 })
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @ManyToMany(() => User, (user) => user.projects, {nullable: true, eager: true})
-    @JoinTable()
-    users: User[]
+  @ApiProperty({ type: () => [User] })
+  @ManyToMany(() => User, (user) => user.projects, {
+    nullable: true,
+    eager: true,
+  })
+  @JoinTable()
+  users: User[];
 
-    @Column()
-    title: string;
+  @ApiProperty({ example: 'Test project' })
+  @Column()
+  title: string;
 
-    @Column()
-    description: string;
+  @ApiProperty({ example: 'Description for test project' })
+  @Column()
+  description: string;
 
-    @ManyToOne(() => User, {eager: true})
-    owner: User
+  @ApiProperty({ type: () => User })
+  @ManyToOne(() => User, { eager: true })
+  owner: User;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @ApiProperty({ example: new Date().toISOString() })
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    
+  @ApiProperty({ example: new Date().toISOString() })
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
