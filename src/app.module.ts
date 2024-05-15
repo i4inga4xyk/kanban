@@ -12,7 +12,7 @@ import { StatusModule } from './status/status.module';
 @Module({
   imports: [
     UserModule,
-    ConfigModule.forRoot({isGlobal: true}),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -23,14 +23,14 @@ import { StatusModule } from './status/status.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         synchronize: true,
-        entities: [__dirname + `/**/*.entity{.js, .ts}`]
+        entities: [__dirname + `/**/*.entity{.js, .ts}`],
       }),
       inject: [ConfigService],
     }),
     AuthModule,
     ProjectsModule,
     TasksModule,
-    StatusModule
+    StatusModule,
   ],
   controllers: [AppController],
   providers: [AppService],
